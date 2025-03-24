@@ -1,7 +1,9 @@
 package edu.du.sbtest0313.service;
 
-import edu.du.sbtest0313.dao.BoardDAO;
-import edu.du.sbtest0313.dto.BoardDTO;
+import edu.du.sbtest0313.entity.Board;
+import edu.du.sbtest0313.entity.User;
+import edu.du.sbtest0313.repository.BoardRepository;
+import edu.du.sbtest0313.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,36 +11,43 @@ import java.util.List;
 @Service
 public class BoardService {
 
-    private final BoardDAO boardDAO;
+    private final BoardRepository boardRepository;
+    private final UserRepository userRepository;
 
-    // 생성자를 통한 DAO 주입 (Spring이 자동으로 주입)
-    public BoardService(BoardDAO boardDAO) {
-        this.boardDAO = boardDAO;
+    public BoardService(BoardRepository boardRepository, UserRepository userRepository) {
+        this.boardRepository = boardRepository;
+        this.userRepository = userRepository;
     }
 
-    // 게시글 추가
-    public int createBoard(BoardDTO board) {
-        return boardDAO.insertBoard(board);
+    // 게시글 작성
+    public void createBoard(Board board, Long userId) {
+        User user = userRepository.findById(userId).orElseThrow();
+        board.setUser(user);
+        boardRepository.save(board);
     }
 
-    // 모든 게시글 조회
-    public List<BoardDTO> getAllBoards() {
-        return boardDAO.getAllBoards();
+    // 게시글 목록
+    public List<Board> getAllBoards() {
+        return boardRepository.findAll();
     }
 
-    // 특정 게시글 조회
-    public BoardDTO getBoardById(Long id) {
-        return boardDAO.getBoardById(id);
+    // 게시글 상세
+    public Board getBoardById(Long id) {
+        return boardRepository.findById(id).orElse(null);
     }
 
     // 게시글 수정
-    public int updateBoard(Long id, BoardDTO board) {
-        board.setId(id); // ID 설정
-        return boardDAO.updateBoard(board);
+    public void updateBoard(Board updatedBoard) {
+        boardRepository.save(updatedBoard);
     }
 
     // 게시글 삭제
-    public int deleteBoard(Long id) {
-        return boardDAO.deleteBoard(id);
+    public void deleteBoard(Long id) {
+        boardRepository.deleteById(id);
+    }
+
+    // 내가 쓴 글 목록
+    public List<Board> getBoardsByUser(Long userId) {
+        return boardRepository.findByUserId(userId);
     }
 }
